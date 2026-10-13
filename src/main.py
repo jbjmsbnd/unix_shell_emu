@@ -1,53 +1,77 @@
-"""Tkinter GUI for the VFS shell emulator (Stage 1)."""
+"""Entry point for the VFS shell emulator (Stage 2)."""
 
-import tkinter as tk
+import argparse
 
-from src.emulator import VFS_NAME, execute_command
+from src.emulator import VFS_NAME
+from src.gui import run_gui
+from src.runner import read_script, run_script
 
 
-def handle_command(event=None):
-    """Process the command entered by the user."""
-    command_line = command_entry.get()
-    command_entry.delete(0, tk.END)
+def build_parser():
+    """Create the command line argument parser."""
+    parser = argparse.ArgumentParser(
+        prog="unix-shell-emu",
+        description="UNIX-like shell emulator with a VFS.",
+    )
+    parser.add_argument(
+        "--vfs",
+        metavar="PATH",
+        help="path to the VFS archive",
+    )
+    parser.add_argument(
+        "--script",
+        metavar="PATH",
+        help="path to the start script",
+    )
+    parser.add_argument(
+        "--no-gui",
+        action="store_true",
+        help="run the start script in the console",
+    )
+    return parser
 
-    if not command_line.strip():
-        return
 
-    output.insert(tk.END, f"$ {command_line}\n")
+def print_debug(args):
+    """Print all user-supplied parameters for debugging."""
+    print("[debug] vfs    =", args.vfs)
+    print("[debug] script =", args.script)
+    print("[debug] no_gui =", args.no_gui)
 
-    result = execute_command(command_line)
 
-    if result == "EXIT":
-        root.destroy()
-        return
+def load_script_lines(path):
+    """Read the start script and warn on failure."""
+    if not path:
+        return []
+    lines, error = read_script(path)
+    if error:
+        print(error)
+        return []
+    return lines
 
-    if result:
-        tag = "error" if result.startswith("Error:") else "normal"
-        output.insert(tk.END, f"{result}\n", tag)
 
-    output.see(tk.END)
+def run_console(lines):
+    """Run start script lines in the console."""
+    result = run_script(lines, print)
+    print(
+        f"[script] total={result.total} "
+        f"executed={result.executed} "
+        f"failed={result.failed} "
+        f"exited={result.exited}"
+    )
 
 
 def main():
-    """Start the GUI event loop."""
-    global root, output, command_entry
+    """Parse arguments and start the emulator."""
+    parser = build_parser()
+    args = parser.parse_args()
+    print_debug(args)
 
-    root = tk.Tk()
-    root.title(f"{VFS_NAME} Emulator")
-    root.geometry("700x500")
+    lines = load_script_lines(args.script)
+    if args.no_gui:
+        run_console(lines)
+        return
 
-    output = tk.Text(
-        root, bg="#1e1e1e", fg="#d4d4d4", insertbackground="#d4d4d4"
-    )
-    output.tag_configure("error", foreground="#f48771")
-    output.pack(fill=tk.BOTH, expand=True)
-
-    command_entry = tk.Entry(root)
-    command_entry.pack(fill=tk.X)
-    command_entry.bind("<Return>", handle_command)
-    command_entry.focus()
-
-    root.mainloop()
+    run_gui(VFS_NAME, initial_lines=lines)
 
 
 if __name__ == "__main__":
