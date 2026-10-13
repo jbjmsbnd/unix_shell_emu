@@ -5,6 +5,8 @@ import shlex
 
 # Name of the virtual file system shown in the window title.
 VFS_NAME = "myVFS"
+# Sentinel returned by execute_command to stop the REPL.
+EXIT_SENTINEL = "EXIT"
 
 # Per-command maximum number of arguments.
 MAX_ARGUMENTS = {
@@ -62,7 +64,7 @@ def execute_cd(args):
 
 def execute_exit(args):
     """Signal the REPL to terminate."""
-    return "EXIT"
+    return EXIT_SENTINEL
 
 
 COMMANDS = {
