@@ -1,0 +1,7 @@
+# Basic start script: successful commands only.
+ls
+cd /tmp
+ls /
+cd
+ls /home/user
+exit

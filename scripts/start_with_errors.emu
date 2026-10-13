@@ -1,0 +1,9 @@
+# Start script with errors: must not stop on failures.
+ls
+ls one two
+echo hello
+cd a b
+unknown_command
+cd /var
+ls
+exit
