@@ -12,7 +12,7 @@ Tkinter. Эмулятор повторяет поведение командно
 Работа выполняется поэтапно:
 
 - [x] Этап 1. REPL — диалог с пользователем, парсер, заглушки команд.
-- [ ] Этап 2. Конфигурация — параметры командной строки, стартовый скрипт.
+- [x] Этап 2. Конфигурация — параметры командной строки, стартовый скрипт.
 - [ ] Этап 3. VFS — загрузка виртуальной файловой системы из ZIP-архива.
 - [ ] Этап 4. Основные команды — `ls`, `cd`, `head`, `tac`, `wc`.
 - [ ] Этап 5. Дополнительные команды — `cp`.
@@ -35,13 +35,20 @@ Tkinter. Эмулятор повторяет поведение командно
 
 ### Параметры командной строки
 
-Параметры появятся на этапе 2 (Конфигурация):
+| Параметр   | Описание                                        |
+|------------|-------------------------------------------------|
+| `--vfs`    | путь к физическому расположению VFS-архива      |
+| `--script` | путь к стартовому скрипту эмулятора (`.emu`)    |
+| `--no-gui` | выполнить стартовый скрипт в консоли без окна   |
 
-| Параметр   | Описание                                    | Статус    |
-|------------|---------------------------------------------|-----------|
-| `--vfs`    | путь к физическому расположению VFS         | планируется |
-| `--script` | путь к стартовому скрипту эмулятора         | планируется |
+При запуске эмулятор печатает отладочный вывод всех заданных
+параметров:
 
+```
+[debug] vfs    = some.zip
+[debug] script = scripts\start_simple.emu
+[debug] no_gui = False
+```
 ## 3. Сборка и запуск тестов
 
 ### Требования
@@ -121,6 +128,63 @@ $ exit
 ```
 Окно эмулятора закрывается.
 
+### Запуск без параметров (интерактивный GUI)
+
+```cmd
+run.bat
+```
+или
+```cmd
+python -m src.main
+```
+
+### Запуск со стартовым скриптом (GUI + автопроигрывание)
+
+```cmd
+python -m src.main --vfs some.zip --script scripts\start_simple.emu
+```
+
+Окно открывается, в нём автоматически проигрывается скрипт,
+после чего можно продолжать вводить команды вручную.
+
+### Запуск стартового скрипта в консоли
+
+```cmd
+python -m src.main --script scripts\start_with_errors.emu --no-gui
+```
+
+Вывод:
+```
+[debug] vfs    = None
+[debug] script = scripts\start_with_errors.emu
+[debug] no_gui = True
+$ ls
+ls
+$ ls one two
+Error: ls: invalid number of arguments
+$ echo hello
+Error: unknown command: echo
+$ cd a b
+Error: cd: invalid number of arguments
+$ unknown_command
+Error: unknown command: unknown_command
+$ cd /var
+cd /var
+$ ls
+ls
+$ exit
+[script] total=8 executed=7 failed=4 exited=True
+```
+
+### Готовые скрипты ОС
+
+В папке `scripts/` лежат готовые `.bat` и `.sh`:
+
+- `run_minimal.bat` — запуск без параметров (GUI).
+- `run_with_script.bat` — запуск с `--vfs` и `--script` (GUI).
+- `run_console.bat` — запуск с `--no-gui` (консоль).
+- `.sh`-аналоги — для Unix-подобных систем.
+
 ## 5. Структура репозитория
 
 ```
@@ -128,10 +192,20 @@ $ exit
 ├── src/
 │   ├── __init__.py
 │   ├── emulator.py   # парсер и исполнитель команд
-│   └── main.py       # точка входа, GUI
+│   ├── runner.py     # проигрывание стартового скрипта
+│   ├── gui.py        # графический интерфейс (Tkinter)
+│   └── main.py       # точка входа, argparse
 ├── tests/
 │   ├── __init__.py
-│   └── test_emulator.py
+│   ├── test_emulator.py
+│   └── test_runner.py
+├── scripts/          # стартовые скрипты и скрипты ОС
+│   ├── README.md
+│   ├── start_simple.emu
+│   ├── start_with_errors.emu
+│   ├── run_minimal.bat / .sh
+│   ├── run_with_script.bat / .sh
+│   └── run_console.bat / .sh
 ├── README.md
 ├── pyproject.toml
 ├── run.bat
