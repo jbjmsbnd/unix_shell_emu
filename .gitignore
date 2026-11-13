@@ -13,6 +13,7 @@ env/
 .pytest_cache/
 .coverage
 htmlcov/
+.ruff_cache/
 
 # Build artifacts
 build/
