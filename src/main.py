@@ -1,10 +1,11 @@
-"""Entry point for the VFS shell emulator (Stage 2)."""
+"""Entry point for the VFS shell emulator (Stage 3)."""
 
 import argparse
 
 from src.emulator import VFS_NAME
 from src.gui import run_gui
 from src.runner import read_script, run_script
+from src.vfs import VFS
 
 
 def build_parser():
@@ -38,6 +39,13 @@ def print_debug(args):
     print("[debug] no_gui =", args.no_gui)
 
 
+def load_vfs(path):
+    """Load the VFS if a path is given, else return (None, None)."""
+    if not path:
+        return None, None
+    return VFS.from_zip(path)
+
+
 def load_script_lines(path):
     """Read the start script and warn on failure."""
     if not path:
@@ -49,7 +57,7 @@ def load_script_lines(path):
     return lines
 
 
-def run_console(lines):
+def run_console(lines, vfs=None):
     """Run start script lines in the console."""
     result = run_script(lines, print)
     print(
@@ -66,12 +74,19 @@ def main():
     args = parser.parse_args()
     print_debug(args)
 
-    lines = load_script_lines(args.script)
-    if args.no_gui:
-        run_console(lines)
+    vfs, vfs_error = load_vfs(args.vfs)
+    if vfs_error:
+        print(vfs_error)
         return
 
-    run_gui(VFS_NAME, initial_lines=lines)
+    title = vfs.name if vfs else VFS_NAME
+    lines = load_script_lines(args.script)
+
+    if args.no_gui:
+        run_console(lines, vfs)
+        return
+
+    run_gui(title, initial_lines=lines)
 
 
 if __name__ == "__main__":
