@@ -2,6 +2,7 @@
 
 import posixpath
 import zipfile
+import os
 
 ROOT = "/"
 
@@ -34,7 +35,7 @@ class VFS:
         with archive:
             files, dirs = _read_archive(archive)
 
-        name = posixpath.splitext(posixpath.basename(path))[0]
+        name = posixpath.splitext(os.path.basename(path))[0]
         return cls(name, files, dirs), None
 
     def normalize(self, path):
