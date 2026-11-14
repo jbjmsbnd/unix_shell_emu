@@ -27,7 +27,7 @@ python scripts\make_vfs.py
 | `start_minimal.emu`         | команды на минимальном VFS                  |
 | `start_several.emu`         | команды на VFS с несколькими файлами        |
 | `start_deep.emu`            | команды на глубоко вложенном VFS            |
-| `start_all_commands.emu`    | все команды этапов 1–3, включая ошибки      |
+| `start_all_commands.emu`    | все команды этапов 1–4, включая ошибки      |
 
 ## Скрипты реальной ОС
 
@@ -46,7 +46,7 @@ python scripts\make_vfs.py
 | `run_vfs_minimal.bat/.sh`  | `minimal.zip` | GUI    |
 | `run_vfs_several.bat/.sh`  | `several.zip` | GUI    |
 | `run_vfs_deep.bat/.sh`     | `deep.zip`    | GUI    |
-| `run_vfs_all.bat/.sh`      | `deep.zip`    | консоль (все команды этапов 1–3) |
+| `run_vfs_all.bat/.sh`      | `deep.zip`    | консоль (все команды этапов 1–4) |
 
 Все `run_vfs_*` сначала вызывают `make_vfs.py`, чтобы zip-архивы
 существовали.

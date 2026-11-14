@@ -1,11 +1,17 @@
-# Several files across directories.
+# Several files across directories with head, tac, wc.
 ls /
 ls /etc
 ls /home/user
 cd /home/user
 ls
+head notes.txt
+tac notes.txt
+wc notes.txt
 cd /var/log
 ls
+head app.log
+tac app.log
+wc app.log
 cd /
 ls /nope
 exit

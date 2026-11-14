@@ -10,15 +10,15 @@ Tkinter. Эмулятор повторяет поведение командно
 сообщает об ошибках.
 
 Виртуальная файловая система загружается из ZIP-архива **целиком в
-память** (без распаковки на диск). Команды `ls` и `cd` работают с
-этой виртуальной ФС.
+память** (без распаковки на диск). Команды `ls`, `cd`, `head`, `tac`,
+`wc` работают с этой виртуальной ФС.
 
 Работа выполняется поэтапно:
 
 - [x] Этап 1. REPL — диалог с пользователем, парсер, заглушки команд.
 - [x] Этап 2. Конфигурация — параметры командной строки, стартовый скрипт.
 - [x] Этап 3. VFS — загрузка виртуальной файловой системы из ZIP-архива.
-- [ ] Этап 4. Основные команды — `head`, `tac`, `wc`.
+- [x] Этап 4. Основные команды — `head`, `tac`, `wc`.
 - [ ] Этап 5. Дополнительные команды — `cp`.
 
 ## 2. Функции и настройки
@@ -29,10 +29,13 @@ Tkinter. Эмулятор повторяет поведение командно
 |---------|-----------|------------------------------------------------------|
 | `ls`    | до 1      | список файлов в директории VFS                       |
 | `cd`    | до 1      | сменить текущую директорию в VFS                     |
+| `head`  | 1         | первые 10 строк файла VFS                            |
+| `tac`   | 1         | строки файла VFS в обратном порядке                  |
+| `wc`    | 1         | число строк, слов и байт в файле VFS                 |
 | `exit`  | нет       | завершить работу эмулятора                           |
 
-Без `--vfs` команды `ls` и `cd` работают как заглушки (этап 1).
-С `--vfs` они работают с виртуальной файловой системой.
+Без `--vfs` команды работают как заглушки (этап 1). С `--vfs` они
+работают с виртуальной файловой системой.
 
 ### Раскрытие переменных окружения
 
@@ -63,6 +66,18 @@ Tkinter. Эмулятор повторяет поведение командно
 |----------------------------------------|--------------------------|
 | `Error: VFS file not found: <path>`    | файл архива не найден    |
 | `Error: invalid VFS archive: <path>`   | файл не является ZIP     |
+
+### Обработка ошибок команд
+
+| Ошибка                                          | Когда возникает                   |
+|-------------------------------------------------|-----------------------------------|
+| `Error: unknown command: <name>`                | неизвестная команда               |
+| `Error: <cmd>: invalid number of arguments`     | слишком много аргументов          |
+| `Error: <cmd>: missing file operand`            | `head`/`tac`/`wc` без аргумента   |
+| `Error: ls: no such file or directory: <path>`  | путь не существует                |
+| `Error: cd: no such directory: <path>`          | директория не существует          |
+| `Error: no such file: <path>`                   | файл не существует                |
+| `Error: is a directory: <path>`                 | передан путь к директории         |
 
 ## 3. Сборка и запуск тестов
 
@@ -128,20 +143,29 @@ python -m src.main --vfs scripts\vfs\deep.zip ^
     --script scripts\start_all_commands.emu --no-gui
 ```
 
-Вывод:
+Фрагмент вывода:
 
 ```
 [debug] vfs    = scripts\vfs\deep.zip
 [debug] script = scripts\start_all_commands.emu
 [debug] no_gui = True
-$ ls /
-a
-$ cd /home
-Error: cd: no such directory: /home
-$ ls /tmp
-Error: ls: no such file or directory: /tmp
-...
-[script] total=12 executed=11 failed=8 exited=True
+$ cd /a/b/c
+$ ls
+d
+file1.txt
+$ head file1.txt
+deep one
+$ tac file1.txt
+deep one
+$ wc file1.txt
+1 2 9
+$ cd /a/b/c/d/e
+$ head file3.txt
+deep three
+$ cd /
+$ ls /nope
+Error: ls: no such file or directory: /nope
+[script] total=25 executed=24 failed=9 exited=True
 ```
 
 ### Ошибка загрузки VFS
@@ -171,7 +195,7 @@ python scripts\make_vfs.py
 - `run_vfs_minimal.bat` — запуск с минимальным VFS.
 - `run_vfs_several.bat` — запуск с VFS из нескольких файлов.
 - `run_vfs_deep.bat` — запуск с глубоко вложенным VFS.
-- `run_vfs_all.bat` — все команды этапов 1–3 с VFS (консоль).
+- `run_vfs_all.bat` — все команды этапов 1–4 с VFS (консоль).
 - `.sh`-аналоги — для Unix-подобных систем.
 
 Подробнее — в `scripts/README.md`.
@@ -191,6 +215,7 @@ python scripts\make_vfs.py
 │   ├── __init__.py
 │   ├── test_emulator.py
 │   ├── test_emulator_vfs.py
+│   ├── test_emulator_head_tac_wc.py
 │   ├── test_runner.py
 │   └── test_vfs.py
 ├── scripts/          # стартовые скрипты и скрипты ОС

@@ -1,11 +1,10 @@
-"""In-memory virtual file system backed by a ZIP archive (Stage 3)."""
+"""In-memory virtual file system backed by a ZIP archive (Stage 4)."""
 
+import os
 import posixpath
 import zipfile
-import os
 
 ROOT = "/"
-
 SEP = "/"
 
 
@@ -49,6 +48,15 @@ class VFS:
     def is_dir(self, path):
         """Return True if path is an existing directory."""
         return self.normalize(path) in self.dirs
+
+    def read_file(self, path):
+        """Return (bytes, error) for a VFS file."""
+        target = self.normalize(path)
+        if target in self.dirs:
+            return b"", f"Error: is a directory: {path}"
+        if target not in self.files:
+            return b"", f"Error: no such file: {path}"
+        return self.files[target], None
 
     def ls(self, path):
         """List the contents of a directory, or echo a file name.

@@ -1,8 +1,16 @@
-# Deep VFS: at least three levels of nesting.
+# Deep VFS with head, tac, wc.
 ls /
 cd /a/b/c
 ls
+head file1.txt
+tac file1.txt
+wc file1.txt
 ls /a/b/c/d/e
+cd /a/b/c/d/e
+ls
+head file3.txt
+tac file3.txt
+wc file3.txt
 cd /a
 ls
 cd ..
