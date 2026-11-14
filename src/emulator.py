@@ -1,10 +1,11 @@
-"""Command parser and executor for the VFS shell emulator (Stage 1)."""
+"""Command parser and executor for the VFS shell emulator."""
 
 import os
 import shlex
 
 # Name of the virtual file system shown in the window title.
 VFS_NAME = "myVFS"
+
 # Sentinel returned by execute_command to stop the REPL.
 EXIT_SENTINEL = "EXIT"
 
@@ -14,6 +15,9 @@ MAX_ARGUMENTS = {
     "cd": 1,
     "exit": 0,
 }
+
+# Default path for cd without arguments (root of the VFS).
+ROOT_PATH = "/"
 
 
 def parse_command(command_line):
@@ -52,17 +56,26 @@ def check_arity(command, args):
     return f"Error: {command}: invalid number of arguments"
 
 
-def execute_ls(args):
-    """Stub for ls: echo the command and its arguments."""
-    return format_command("ls", args)
+def execute_ls(args, vfs):
+    """List a directory in the VFS, or echo the stub command."""
+    if vfs is None:
+        return format_command("ls", args)
+    path = args[0] if args else vfs.cwd
+    lines, error = vfs.ls(path)
+    if error:
+        return error
+    return "\n".join(lines)
 
 
-def execute_cd(args):
-    """Stub for cd: echo the command and its arguments."""
-    return format_command("cd", args)
+def execute_cd(args, vfs):
+    """Change the current directory in the VFS, or echo the stub."""
+    if vfs is None:
+        return format_command("cd", args)
+    path = args[0] if args else ROOT_PATH
+    return vfs.cd(path) or ""
 
 
-def execute_exit(args):
+def execute_exit(args, vfs):
     """Signal the REPL to terminate."""
     return EXIT_SENTINEL
 
@@ -74,11 +87,12 @@ COMMANDS = {
 }
 
 
-def execute_command(command_line):
+def execute_command(command_line, vfs=None):
     """Execute a single emulator command line.
 
-    Returns the text to print, the sentinel "EXIT" to stop the REPL,
-    or an empty string for blank input.
+    When vfs is None, ls and cd behave as stubs. Returns the text
+    to print, the sentinel "EXIT" to stop the REPL, or an empty
+    string for blank input.
     """
     command, args, error = parse_command(command_line)
     if error:
@@ -95,4 +109,4 @@ def execute_command(command_line):
     if arity_error:
         return arity_error
 
-    return handler(args)
+    return handler(args, vfs)
