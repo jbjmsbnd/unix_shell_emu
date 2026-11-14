@@ -9,23 +9,30 @@ Tkinter. Эмулятор повторяет поведение командно
 переменные окружения хоста, выполняет поддерживаемые команды и
 сообщает об ошибках.
 
+Виртуальная файловая система загружается из ZIP-архива **целиком в
+память** (без распаковки на диск). Команды `ls` и `cd` работают с
+этой виртуальной ФС.
+
 Работа выполняется поэтапно:
 
 - [x] Этап 1. REPL — диалог с пользователем, парсер, заглушки команд.
 - [x] Этап 2. Конфигурация — параметры командной строки, стартовый скрипт.
-- [ ] Этап 3. VFS — загрузка виртуальной файловой системы из ZIP-архива.
-- [ ] Этап 4. Основные команды — `ls`, `cd`, `head`, `tac`, `wc`.
+- [x] Этап 3. VFS — загрузка виртуальной файловой системы из ZIP-архива.
+- [ ] Этап 4. Основные команды — `head`, `tac`, `wc`.
 - [ ] Этап 5. Дополнительные команды — `cp`.
 
 ## 2. Функции и настройки
 
 ### Поддерживаемые команды
 
-| Команда | Аргументы | Описание                                       |
-|---------|-----------|------------------------------------------------|
-| `ls`    | до 1      | вывести список файлов (заглушка на этапе 1)    |
-| `cd`    | до 1      | сменить каталог (заглушка на этапе 1)          |
-| `exit`  | нет       | завершить работу эмулятора                     |
+| Команда | Аргументы | Описание                                             |
+|---------|-----------|------------------------------------------------------|
+| `ls`    | до 1      | список файлов в директории VFS                       |
+| `cd`    | до 1      | сменить текущую директорию в VFS                     |
+| `exit`  | нет       | завершить работу эмулятора                           |
+
+Без `--vfs` команды `ls` и `cd` работают как заглушки (этап 1).
+С `--vfs` они работают с виртуальной файловой системой.
 
 ### Раскрытие переменных окружения
 
@@ -45,10 +52,18 @@ Tkinter. Эмулятор повторяет поведение командно
 параметров:
 
 ```
-[debug] vfs    = some.zip
-[debug] script = scripts\start_simple.emu
+[debug] vfs    = scripts\vfs\deep.zip
+[debug] script = scripts\start_deep.emu
 [debug] no_gui = False
 ```
+
+### Обработка ошибок VFS
+
+| Ошибка                                  | Когда возникает          |
+|----------------------------------------|--------------------------|
+| `Error: VFS file not found: <path>`    | файл архива не найден    |
+| `Error: invalid VFS archive: <path>`   | файл не является ZIP     |
+
 ## 3. Сборка и запуск тестов
 
 ### Требования
@@ -90,58 +105,17 @@ python -m pytest -v
 
 ## 4. Примеры использования
 
-### Успешные команды
-
-```
-$ ls
-ls
-$ ls /home
-ls /home
-$ cd
-cd
-$ cd /tmp
-cd /tmp
-```
-
-### Обработка ошибок
-
-```
-$ ls a b
-Error: ls: invalid number of arguments
-$ cd a b
-Error: cd: invalid number of arguments
-$ echo hello
-Error: unknown command: echo
-```
-
-### Раскрытие переменной окружения
-
-```
-$ ls $USERPROFILE
-ls C:\Users\Admin
-```
-
-### Завершение работы
-
-```
-$ exit
-```
-Окно эмулятора закрывается.
-
 ### Запуск без параметров (интерактивный GUI)
 
 ```cmd
 run.bat
 ```
-или
-```cmd
-python -m src.main
-```
 
 ### Запуск со стартовым скриптом (GUI + автопроигрывание)
 
 ```cmd
-python -m src.main --vfs some.zip --script scripts\start_simple.emu
+python -m src.main --vfs scripts\vfs\deep.zip ^
+    --script scripts\start_deep.emu
 ```
 
 Окно открывается, в нём автоматически проигрывается скрипт,
@@ -150,40 +124,57 @@ python -m src.main --vfs some.zip --script scripts\start_simple.emu
 ### Запуск стартового скрипта в консоли
 
 ```cmd
-python -m src.main --script scripts\start_with_errors.emu --no-gui
+python -m src.main --vfs scripts\vfs\deep.zip ^
+    --script scripts\start_all_commands.emu --no-gui
 ```
 
 Вывод:
+
 ```
-[debug] vfs    = None
-[debug] script = scripts\start_with_errors.emu
+[debug] vfs    = scripts\vfs\deep.zip
+[debug] script = scripts\start_all_commands.emu
 [debug] no_gui = True
-$ ls
-ls
-$ ls one two
-Error: ls: invalid number of arguments
-$ echo hello
-Error: unknown command: echo
-$ cd a b
-Error: cd: invalid number of arguments
-$ unknown_command
-Error: unknown command: unknown_command
-$ cd /var
-cd /var
-$ ls
-ls
-$ exit
-[script] total=8 executed=7 failed=4 exited=True
+$ ls /
+a
+$ cd /home
+Error: cd: no such directory: /home
+$ ls /tmp
+Error: ls: no such file or directory: /tmp
+...
+[script] total=12 executed=11 failed=8 exited=True
 ```
+
+### Ошибка загрузки VFS
+
+```
+$ python -m src.main --vfs missing.zip
+[debug] vfs    = missing.zip
+[debug] script = None
+[debug] no_gui = False
+Error: VFS file not found: missing.zip
+```
+
+Окно не открывается — эмулятор сообщает об ошибке и завершается.
+
+### Генерация тестовых VFS-архивов
+
+```cmd
+python scripts\make_vfs.py
+```
+
+Создаёт `scripts/vfs/minimal.zip`, `several.zip`, `deep.zip`.
 
 ### Готовые скрипты ОС
 
-В папке `scripts/` лежат готовые `.bat` и `.sh`:
+В папке `scripts/` лежат `.bat` и `.sh`:
 
-- `run_minimal.bat` — запуск без параметров (GUI).
-- `run_with_script.bat` — запуск с `--vfs` и `--script` (GUI).
-- `run_console.bat` — запуск с `--no-gui` (консоль).
+- `run_vfs_minimal.bat` — запуск с минимальным VFS.
+- `run_vfs_several.bat` — запуск с VFS из нескольких файлов.
+- `run_vfs_deep.bat` — запуск с глубоко вложенным VFS.
+- `run_vfs_all.bat` — все команды этапов 1–3 с VFS (консоль).
 - `.sh`-аналоги — для Unix-подобных систем.
+
+Подробнее — в `scripts/README.md`.
 
 ## 5. Структура репозитория
 
@@ -192,20 +183,21 @@ $ exit
 ├── src/
 │   ├── __init__.py
 │   ├── emulator.py   # парсер и исполнитель команд
+│   ├── vfs.py        # виртуальная файловая система
 │   ├── runner.py     # проигрывание стартового скрипта
 │   ├── gui.py        # графический интерфейс (Tkinter)
 │   └── main.py       # точка входа, argparse
 ├── tests/
 │   ├── __init__.py
 │   ├── test_emulator.py
-│   └── test_runner.py
+│   ├── test_emulator_vfs.py
+│   ├── test_runner.py
+│   └── test_vfs.py
 ├── scripts/          # стартовые скрипты и скрипты ОС
 │   ├── README.md
-│   ├── start_simple.emu
-│   ├── start_with_errors.emu
-│   ├── run_minimal.bat / .sh
-│   ├── run_with_script.bat / .sh
-│   └── run_console.bat / .sh
+│   ├── make_vfs.py
+│   ├── start_*.emu
+│   └── run_*.bat / .sh
 ├── README.md
 ├── pyproject.toml
 ├── run.bat

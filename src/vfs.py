@@ -61,6 +61,10 @@ class VFS:
         if target not in self.dirs:
             return [], f"Error: ls: no such file or directory: {path}"
         prefix = target.rstrip(SEP) + SEP if target != ROOT else SEP
+        return self._list_dir(target, prefix), None
+
+    def _list_dir(self, target, prefix):
+        """Collect names directly under prefix, excluding target."""
         names = set()
         for candidate in list(self.files) + list(self.dirs):
             if candidate == target or not candidate.startswith(prefix):
@@ -68,7 +72,7 @@ class VFS:
             rest = candidate[len(prefix):]
             if rest:
                 names.add(rest.split(SEP, 1)[0])
-        return sorted(names), None
+        return sorted(names)
 
     def cd(self, path):
         """Change the working directory.
