@@ -1,26 +1,39 @@
-# All commands from stages 1-4, both success and errors.
+# All commands from stages 1-5, both success and errors.
 ls /
 cd /a/b/c
 ls
 head file1.txt
 tac file1.txt
 wc file1.txt
-head /a/b/c/d/file2.txt
-tac /a/b/c/d/file2.txt
-wc /a/b/c/d/file2.txt
+cp file1.txt copy.txt
+ls
+head copy.txt
+tac copy.txt
+wc copy.txt
+cp file1.txt /a/b/c/d
+ls /a/b/c/d
+head /a/b/c/d/file1.txt
 cd /a/b/c/d/e
 ls
 head file3.txt
 tac file3.txt
 wc file3.txt
+cp file3.txt /a/b/c/copied3.txt
+ls /a/b/c
+head /a/b/c/copied3.txt
 cd /
 ls /nope
 cd /nope
 head /nope.txt
 tac /nope.txt
 wc /nope.txt
+cp /nope.txt /x.txt
+cp /a/b/c /x.txt
+cp /a/b/c/file1.txt
+cp /a/b/c/file1.txt /nope/dir
 ls a b
 cd a b
+cp a b c
 echo hello
 unknown_command
 exit

@@ -1,4 +1,4 @@
-"""In-memory virtual file system backed by a ZIP archive (Stage 4)."""
+"""In-memory virtual file system backed by a ZIP archive (Stage 5)."""
 
 import os
 import posixpath
@@ -57,6 +57,19 @@ class VFS:
         if target not in self.files:
             return b"", f"Error: no such file: {path}"
         return self.files[target], None
+
+    def write_file(self, path, data):
+        """Store bytes at path, creating parent dirs as needed.
+
+        Returns None on success or an error string.
+        """
+        target = self.normalize(path)
+        if target in self.dirs:
+            return f"Error: is a directory: {path}"
+        parent = posixpath.dirname(target)
+        _add_with_parents(parent, self.dirs)
+        self.files[target] = data
+        return None
 
     def ls(self, path):
         """List the contents of a directory, or echo a file name.

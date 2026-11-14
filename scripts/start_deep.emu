@@ -1,16 +1,22 @@
-# Deep VFS with head, tac, wc.
+# Deep VFS with head, tac, wc and cp.
 ls /
 cd /a/b/c
 ls
 head file1.txt
 tac file1.txt
 wc file1.txt
+cp file1.txt copied.txt
+ls
+head copied.txt
+wc copied.txt
 ls /a/b/c/d/e
 cd /a/b/c/d/e
 ls
 head file3.txt
 tac file3.txt
 wc file3.txt
+cp file3.txt /a/b/c
+ls /a/b/c
 cd /a
 ls
 cd ..

@@ -1,6 +1,7 @@
 """Command parser and executor for the VFS shell emulator."""
 
 import os
+import posixpath
 import shlex
 
 # Name of the virtual file system shown in the window title.
@@ -16,6 +17,7 @@ MAX_ARGUMENTS = {
     "head": 1,
     "tac": 1,
     "wc": 1,
+    "cp": 2,
     "exit": 0,
 }
 
@@ -121,6 +123,35 @@ def execute_wc(args, vfs):
     return f"{lines} {words} {len(data)}"
 
 
+def execute_cp(args, vfs):
+    """Copy a VFS file to a destination path.
+
+    If the destination is an existing directory, the file is
+    copied inside it under its source name. Otherwise the
+    destination is treated as a file name and its parent
+    directory must already exist.
+    """
+    if vfs is None:
+        return format_command("cp", args)
+    if len(args) < 2:
+        return "Error: cp: missing file operand"
+    source, target = args[0], args[1]
+    data, error = vfs.read_file(source)
+    if error:
+        return error
+    if vfs.is_dir(target):
+        name = posixpath.basename(source)
+        target = posixpath.join(target, name)
+    else:
+        parent = posixpath.dirname(vfs.normalize(target))
+        if not vfs.is_dir(parent):
+            return f"Error: no such directory: {target}"
+    write_error = vfs.write_file(target, data)
+    if write_error:
+        return write_error
+    return ""
+
+
 def execute_exit(args, vfs):
     """Signal the REPL to terminate."""
     return EXIT_SENTINEL
@@ -132,6 +163,7 @@ COMMANDS = {
     "head": execute_head,
     "tac": execute_tac,
     "wc": execute_wc,
+    "cp": execute_cp,
     "exit": execute_exit,
 }
 
@@ -139,9 +171,9 @@ COMMANDS = {
 def execute_command(command_line, vfs=None):
     """Execute a single emulator command line.
 
-    When vfs is None, ls, cd, head, tac and wc behave as stubs.
-    Returns the text to print, the sentinel "EXIT" to stop the
-    REPL, or an empty string for blank input.
+    When vfs is None, ls, cd, head, tac, wc and cp behave as
+    stubs. Returns the text to print, the sentinel "EXIT" to
+    stop the REPL, or an empty string for blank input.
     """
     command, args, error = parse_command(command_line)
     if error:

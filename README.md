@@ -11,7 +11,8 @@ Tkinter. Эмулятор повторяет поведение командно
 
 Виртуальная файловая система загружается из ZIP-архива **целиком в
 память** (без распаковки на диск). Команды `ls`, `cd`, `head`, `tac`,
-`wc` работают с этой виртуальной ФС.
+`wc`, `cp` работают с этой виртуальной ФС. Изменения (`cp`) хранятся
+**только в памяти** и не записываются обратно в архив.
 
 Работа выполняется поэтапно:
 
@@ -19,7 +20,7 @@ Tkinter. Эмулятор повторяет поведение командно
 - [x] Этап 2. Конфигурация — параметры командной строки, стартовый скрипт.
 - [x] Этап 3. VFS — загрузка виртуальной файловой системы из ZIP-архива.
 - [x] Этап 4. Основные команды — `head`, `tac`, `wc`.
-- [ ] Этап 5. Дополнительные команды — `cp`.
+- [x] Этап 5. Дополнительные команды — `cp`.
 
 ## 2. Функции и настройки
 
@@ -32,10 +33,20 @@ Tkinter. Эмулятор повторяет поведение командно
 | `head`  | 1         | первые 10 строк файла VFS                            |
 | `tac`   | 1         | строки файла VFS в обратном порядке                  |
 | `wc`    | 1         | число строк, слов и байт в файле VFS                 |
+| `cp`    | 2         | копировать файл VFS (только в памяти)                |
 | `exit`  | нет       | завершить работу эмулятора                           |
 
 Без `--vfs` команды работают как заглушки (этап 1). С `--vfs` они
 работают с виртуальной файловой системой.
+
+### Семантика `cp`
+
+- `cp <file> <newfile>` — копия под новым именем (родительская
+  директория должна существовать).
+- `cp <file> <dir>` — копия внутри существующей директории под
+  исходным именем.
+- Копирование директорий не поддерживается.
+- Копия хранится в памяти; исходный zip не изменяется.
 
 ### Раскрытие переменных окружения
 
@@ -73,11 +84,12 @@ Tkinter. Эмулятор повторяет поведение командно
 |-------------------------------------------------|-----------------------------------|
 | `Error: unknown command: <name>`                | неизвестная команда               |
 | `Error: <cmd>: invalid number of arguments`     | слишком много аргументов          |
-| `Error: <cmd>: missing file operand`            | `head`/`tac`/`wc` без аргумента   |
+| `Error: <cmd>: missing file operand`            | `head`/`tac`/`wc`/`cp` без аргумента |
 | `Error: ls: no such file or directory: <path>`  | путь не существует                |
 | `Error: cd: no such directory: <path>`          | директория не существует          |
 | `Error: no such file: <path>`                   | файл не существует                |
 | `Error: is a directory: <path>`                 | передан путь к директории         |
+| `Error: no such directory: <path>`              | родитель `cp` не существует       |
 
 ## 3. Сборка и запуск тестов
 
@@ -153,19 +165,16 @@ $ cd /a/b/c
 $ ls
 d
 file1.txt
-$ head file1.txt
+$ cp file1.txt copy.txt
+$ ls
+copy.txt
+d
+file1.txt
+$ head copy.txt
 deep one
-$ tac file1.txt
-deep one
-$ wc file1.txt
-1 2 9
-$ cd /a/b/c/d/e
-$ head file3.txt
-deep three
-$ cd /
-$ ls /nope
-Error: ls: no such file or directory: /nope
-[script] total=25 executed=24 failed=9 exited=True
+$ cp /a/b/c/file1.txt /nope/dir
+Error: no such directory: /nope/dir
+[script] total=38 executed=37 failed=14 exited=True
 ```
 
 ### Ошибка загрузки VFS
@@ -195,7 +204,7 @@ python scripts\make_vfs.py
 - `run_vfs_minimal.bat` — запуск с минимальным VFS.
 - `run_vfs_several.bat` — запуск с VFS из нескольких файлов.
 - `run_vfs_deep.bat` — запуск с глубоко вложенным VFS.
-- `run_vfs_all.bat` — все команды этапов 1–4 с VFS (консоль).
+- `run_vfs_all.bat` — все команды этапов 1–5 с VFS (консоль).
 - `.sh`-аналоги — для Unix-подобных систем.
 
 Подробнее — в `scripts/README.md`.
@@ -216,6 +225,7 @@ python scripts\make_vfs.py
 │   ├── test_emulator.py
 │   ├── test_emulator_vfs.py
 │   ├── test_emulator_head_tac_wc.py
+│   ├── test_emulator_cp.py
 │   ├── test_runner.py
 │   └── test_vfs.py
 ├── scripts/          # стартовые скрипты и скрипты ОС
