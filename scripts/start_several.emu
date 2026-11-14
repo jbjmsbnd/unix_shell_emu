@@ -1,0 +1,11 @@
+# Several files across directories.
+ls /
+ls /etc
+ls /home/user
+cd /home/user
+ls
+cd /var/log
+ls
+cd /
+ls /nope
+exit

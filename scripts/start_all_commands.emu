@@ -1,0 +1,13 @@
+# All commands from stages 1-3, including error handling.
+ls /
+cd /home
+ls
+cd ..
+ls /tmp
+ls /nope
+cd /nope
+ls a b
+cd a b
+echo hello
+unknown_command
+exit

@@ -1,0 +1,10 @@
+# Deep VFS: at least three levels of nesting.
+ls /
+cd /a/b/c
+ls
+ls /a/b/c/d/e
+cd /a
+ls
+cd ..
+ls
+exit

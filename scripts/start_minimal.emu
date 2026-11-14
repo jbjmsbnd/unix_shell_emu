@@ -1,0 +1,7 @@
+# Minimal VFS: one file in the root.
+ls
+ls /
+ls README.txt
+cd /
+ls
+exit
