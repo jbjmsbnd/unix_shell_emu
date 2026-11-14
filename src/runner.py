@@ -35,12 +35,13 @@ def is_skippable(line):
     return not stripped or stripped.startswith(COMMENT_PREFIX)
 
 
-def run_script(lines, write):
+def run_script(lines, write, vfs=None):
     """Run start script lines, calling write() for each output line.
 
     Blank and comment lines are skipped. A failing command is
     reported but does not stop the script. The script stops when
-    the emulator returns the EXIT sentinel.
+    the emulator returns the EXIT sentinel. When vfs is provided
+    it is passed to the emulator commands.
     """
     result = ScriptResult()
     for line in lines:
@@ -48,7 +49,7 @@ def run_script(lines, write):
             continue
         result.total += 1
         write(f"$ {line}")
-        output = execute_command(line)
+        output = execute_command(line, vfs)
         if output == EXIT_SENTINEL:
             result.exited = True
             break

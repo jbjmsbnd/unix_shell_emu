@@ -1,4 +1,4 @@
-"""Tkinter GUI for the VFS shell emulator (Stage 2)."""
+"""Tkinter GUI for the VFS shell emulator (Stage 3)."""
 
 import tkinter as tk
 
@@ -16,11 +16,12 @@ AUTOPLAY_DELAY_MS = 100
 class ShellWindow:
     """Interactive Tk window bound to the emulator REPL."""
 
-    def __init__(self, title, initial_lines=None):
+    def __init__(self, title, vfs=None, initial_lines=None):
         """Create the window and build the widgets."""
         self.root = tk.Tk()
         self.root.title(f"{title} Emulator")
         self.root.geometry("700x500")
+        self.vfs = vfs
         self._build_widgets()
         self._initial_lines = list(initial_lines or [])
 
@@ -50,7 +51,7 @@ class ShellWindow:
     def _execute(self, line):
         """Run one command line and print its output."""
         self._write(f"$ {line}")
-        result = execute_command(line)
+        result = execute_command(line, self.vfs)
         if result == EXIT_SENTINEL:
             self.root.destroy()
             return
@@ -79,7 +80,7 @@ class ShellWindow:
         self.root.mainloop()
 
 
-def run_gui(title, initial_lines=None):
+def run_gui(title, vfs=None, initial_lines=None):
     """Open the shell window and run it until closed."""
-    window = ShellWindow(title, initial_lines)
+    window = ShellWindow(title, vfs, initial_lines)
     window.run()

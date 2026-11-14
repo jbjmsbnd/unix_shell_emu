@@ -59,7 +59,7 @@ def load_script_lines(path):
 
 def run_console(lines, vfs=None):
     """Run start script lines in the console."""
-    result = run_script(lines, print)
+    result = run_script(lines, print, vfs)
     print(
         f"[script] total={result.total} "
         f"executed={result.executed} "
@@ -86,7 +86,7 @@ def main():
         run_console(lines, vfs)
         return
 
-    run_gui(title, initial_lines=lines)
+    run_gui(title, vfs=vfs, initial_lines=lines)
 
 
 if __name__ == "__main__":
